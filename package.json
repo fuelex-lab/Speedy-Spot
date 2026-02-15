@@ -1,0 +1,21 @@
+{
+  "name": "speedy-spot",
+  "version": "0.1.0",
+  "description": "Distributed worker and cluster framework for Discord music bots with Spotify integration",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test",
+    "docs:serve": "mkdocs serve",
+    "docs:build": "mkdocs build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "optionalDependencies": {
+    "redis": "^5.8.2"
+  },
+  "license": "GPL-3.0"
+}

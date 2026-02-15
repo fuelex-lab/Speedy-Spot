@@ -1,0 +1,39 @@
+site_name: Speedy-Spot
+site_description: Distributed worker and cluster framework for Discord music bots with Spotify integration
+site_url: https://fuelex-lab.github.io/Speedy-Spot/
+repo_url: https://github.com/fuelex-lab/Speedy-Spot
+repo_name: fuelex-lab/Speedy-Spot
+docs_dir: docs
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Queue Flow: architecture/queue-flow.md
+      - Shard Model: architecture/shard-model.md
+      - Lavalink: architecture/lavalink.md
+  - Auth:
+      - Spotify OAuth: auth/spotify.md
+  - Development:
+      - Setup: development/setup.md
+      - Roadmap: development/roadmap.md
+  - Operations:
+      - Scaling: operations/scaling.md
+      - Reliability: operations/reliability.md
+  - Reference:
+      - Config: reference/config.md
+      - API: reference/api.md
+      - Events: reference/events.md
+  - Examples:
+      - Bot Integration: examples/bot-integration.md
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
