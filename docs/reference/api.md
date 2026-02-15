@@ -1,13 +1,17 @@
 # API Reference
 
-If `ADMIN_API_TOKEN` is set, protected endpoints require header `x-api-token`.
+If `ADMIN_API_TOKEN` is set, send:
 
-Public endpoints:
+```http
+x-api-token: <ADMIN_API_TOKEN>
+```
+
+## Public
 
 - `GET /health`
 - `POST /auth/spotify/callback`
 
-Protected endpoints:
+## Protected
 
 - `GET /metrics`
 - `GET /clusters`
@@ -15,32 +19,96 @@ Protected endpoints:
 - `POST /jobs`
 - `POST /demo/seed`
 
-## `GET /clusters`
-Returns cluster snapshots including shard assignment and `lavalinkNodeIds`.
+## GET /health
 
-## `POST /jobs`
-Enqueue a worker job with strict validation.
+```json
+{
+  "status": "ok",
+  "clusters": 2,
+  "queueDepth": 0
+}
+```
 
-Supported job types:
+## GET /clusters
 
-- `playback.enqueue` requires `payload.guildId` and (`payload.trackId` or `payload.query`)
-- `spotify.playlist.sync` requires `payload.userId` and `payload.playlistId`
-- `lavalink.voice.update` requires `payload.guildId`, `payload.sessionId`, `payload.token`, `payload.endpoint`
+Returns cluster state including shard list and `lavalinkNodeIds`.
 
-Optional fields for `playback.enqueue`:
+## GET /metrics
 
-- `payload.source` (Lavalink search source such as `spsearch`, `ytsearch`)
-- `payload.shardId` (numeric shard hint for node routing)
-- `payload.encoded` (pre-resolved encoded track)
-- `payload.dispatchToLavalink` (default `true`)
-- `payload.noReplace` (default `true`)
-- `payload.pause`, `payload.volume`, `payload.position`
+Returns counters, gauges, queue and dead-letter depths, and cluster snapshot.
 
-Optional fields for `lavalink.voice.update`:
+## GET /auth/spotify/url
 
-- `payload.shardId` (numeric shard hint for node routing)
+Query params:
 
-Optional fields for `spotify.playlist.sync`:
+- `userId` (required)
+- `state` (optional)
+- `scope` (optional)
 
-- `payload.pageLimit` (max 100)
-- `payload.maxTracks`
+## POST /auth/spotify/callback
+
+```json
+{
+  "userId": "user-1",
+  "code": "spotify-auth-code"
+}
+```
+
+## POST /jobs
+
+Supported types:
+
+- `playback.enqueue`
+- `spotify.playlist.sync`
+- `lavalink.voice.update`
+
+### playback.enqueue
+
+Required:
+
+- `guildId`
+- one of `trackId` or `query`
+
+Optional:
+
+- `source`
+- `shardId`
+- `encoded`
+- `dispatchToLavalink`
+- `noReplace`
+- `pause`
+- `volume`
+- `position`
+
+### spotify.playlist.sync
+
+Required:
+
+- `userId`
+- `playlistId`
+
+Optional:
+
+- `pageLimit`
+- `maxTracks`
+
+### lavalink.voice.update
+
+Required:
+
+- `guildId`
+- `sessionId`
+- `token`
+- `endpoint`
+
+Optional:
+
+- `shardId`
+
+## Error shape
+
+```json
+{
+  "error": "validation message or runtime message"
+}
+```

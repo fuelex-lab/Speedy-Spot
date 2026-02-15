@@ -1,19 +1,49 @@
 # Architecture Overview
 
-Speedy-Spot is divided into modular components under `src/`:
+Speedy-Spot separates control-plane concerns from execution-plane concerns to keep load handling and failure isolation explicit.
 
-- `src/api`: HTTP control surface for health, metrics, auth callback, and job enqueue.
-- `src/cluster`: cluster manager and shard allocation logic.
-- `src/workers`: worker runtime for job processing.
-- `src/queue`: queueing and retry/dead-letter logic.
-- `src/auth`: Spotify login/token lifecycle scaffold.
-- `src/lavalink`: Lavalink node client and query resolution.
-- `src/playback`: guild-level playback coordination.
-- `src/telemetry`: logging and in-memory metrics.
+## Module boundaries
 
-The system follows a control-plane and execution-plane model:
+- `src/api`: request validation, auth guard, enqueue boundary.
+- `src/queue`: provider abstraction + retry/dead-letter semantics.
+- `src/cluster`: shard and worker-pool orchestration.
+- `src/workers`: job execution runtime.
+- `src/auth`: Spotify token and playlist services.
+- `src/lavalink`: routing, resolve, voice patch, player patch.
+- `src/playback`: guild-scoped state + lock discipline.
+- `src/telemetry`: counters, gauges, structured logs.
 
-1. Control plane accepts requests and enqueues jobs.
-2. Cluster manager owns shard assignment and worker pools.
-3. Workers consume and process queued jobs with retries.
-4. Playback jobs can resolve query input via Lavalink before state enqueue.
+## Control plane
+
+Control plane responsibilities:
+
+- validate inbound job payload shape
+- enforce optional API token guard
+- expose cluster snapshot and metric views
+- provide Spotify callback exchange endpoint
+
+Control plane intentionally does not execute heavy job logic.
+
+## Execution plane
+
+Execution plane responsibilities:
+
+- dequeue jobs by priority order
+- route shard-aware playback and voice operations
+- call Spotify/Lavalink external APIs
+- apply retry policy and DLQ fallback
+- commit guild state updates for observability/debugging
+
+## Design invariants
+
+- job handlers are stateless beyond explicit stores/coordinator state
+- retries are bounded and observable
+- routing decisions are deterministic for a given shard/guild input
+- external-call failure must not crash worker loop
+
+## Failure handling model
+
+- per-job failure: metric increment + requeue/DLQ
+- per-node Lavalink failure: preferred node fallback to next candidate
+- Spotify rate limits: bounded retry with backoff
+- malformed requests: rejected at API boundary before queue insertion

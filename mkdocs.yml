@@ -15,23 +15,40 @@ nav:
   - Home: index.md
   - Architecture:
       - Overview: architecture/overview.md
+      - Dataflow: architecture/dataflow.md
       - Queue Flow: architecture/queue-flow.md
       - Shard Model: architecture/shard-model.md
       - Lavalink: architecture/lavalink.md
+      - State Model: architecture/state-model.md
+      - Failure Modes: architecture/failure-modes.md
   - Auth:
       - Spotify OAuth: auth/spotify.md
   - Development:
       - Setup: development/setup.md
+      - Testing: development/testing.md
+      - Extending: development/extending.md
       - Roadmap: development/roadmap.md
   - Operations:
+      - Deployment: operations/deployment.md
       - Scaling: operations/scaling.md
       - Reliability: operations/reliability.md
+      - SLO and Alerting: operations/slo.md
+      - Runbook: operations/runbook.md
   - Reference:
       - Config: reference/config.md
       - API: reference/api.md
       - Events: reference/events.md
+      - Metrics: reference/metrics.md
+      - Job Schemas: reference/job-schemas.md
+      - Security: reference/security.md
+      - Contracts: reference/contracts.md
+      - Troubleshooting: reference/troubleshooting.md
   - Examples:
       - Bot Integration: examples/bot-integration.md
+      - cURL Cookbook: examples/curl-cookbook.md
+  - Contributing: contributing.md
+  - FAQ: faq.md
+  - Glossary: glossary.md
 markdown_extensions:
   - admonition
   - tables
