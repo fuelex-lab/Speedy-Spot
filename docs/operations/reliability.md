@@ -1,14 +1,25 @@
 # Reliability
 
-Current reliability features:
+## Existing protections
 
-- Retry attempts up to `MAX_JOB_RETRIES`
-- Dead-letter queue capture for failed jobs
-- Queue provider abstraction for in-memory or Redis-backed transport
-- Cluster health snapshot available via metrics and clusters endpoints
+- bounded retries + dead-letter queue
+- job-level failure isolation
+- shard-aware and failover-aware Lavalink routing
+- Spotify retry/backoff behavior
+- API-side validation gate
 
-Recommended production additions:
+## High-risk zones
 
-- Circuit breakers for external API calls
-- Persistent session store for Spotify tokens
-- Automated worker restart and exponential backoff policies
+- upstream dependency outages (Spotify/Lavalink)
+- queue provider downtime
+- malformed producer payload bursts
+- stale Lavalink session IDs
+
+## Hardening checklist
+
+- use Redis queue in non-trivial environments
+- set `ADMIN_API_TOKEN`
+- use encrypted token store for persistence
+- configure multiple Lavalink nodes
+- monitor retry and dead-letter rates
+- prioritize `lavalink.voice.update` jobs

@@ -1,23 +1,51 @@
 # Lavalink Integration
 
-Speedy-Spot supports Lavalink-backed track resolution, voice updates, and player dispatch for playback jobs.
+Speedy-Spot integrates Lavalink for both playback and voice readiness.
 
-## Flow
+## Supported actions
 
-1. API receives `lavalink.voice.update` after Discord voice state/server events.
-2. Worker patches Lavalink player with voice payload (`sessionId`, `token`, `endpoint`).
-3. API receives `playback.enqueue` with either `trackId` or `query`.
-4. If `query` is provided, worker resolves it through Lavalink `/v4/loadtracks` using preferred node routing.
-5. Worker dispatches encoded track to Lavalink player session endpoint.
-6. Worker stores normalized playback metadata in guild playback state.
+- query resolution (`/v4/loadtracks`)
+- voice state patch (`/v4/sessions/{sessionId}/players/{guildId}`)
+- encoded track dispatch (same player patch endpoint)
 
-## Shard and cluster routing
+## Voice + playback ordering
 
-- Cluster manager maps clusters to Lavalink nodes deterministically.
-- Worker chooses preferred node from router using `payload.shardId` (if present) or `payload.guildId` hash.
-- Lavalink client tries preferred node first and then failover nodes.
+Recommended sequence per guild:
 
-## Player and voice updates
+1. receive Discord voice-server/session update
+2. enqueue `lavalink.voice.update`
+3. enqueue `playback.enqueue` (query or encoded)
+4. worker resolves query when needed
+5. worker dispatches encoded track
 
-- Player endpoint: `PATCH /v4/sessions/{sessionId}/players/{guildId}`
-- Node config requires `sessionId` to enable player and voice patch operations.
+Dispatch before voice readiness can fail, so producers should prioritize voice updates.
+
+## Node requirements
+
+Each `LAVALINK_NODES` item should include:
+
+- `id`
+- `url`
+- `password`
+- `sessionId`
+
+Without `sessionId`, resolve can work but player/voice patch operations cannot execute on that node.
+
+## Routing behavior
+
+- cluster manager assigns node IDs to clusters
+- router selects preferred node by shard or guild hash
+- client attempts preferred node first
+- client falls back automatically on error/non-2xx/no-result
+
+## Failure scenarios
+
+- node unavailable: fallback path activates
+- all nodes failing: worker throws; queue retry policy handles reattempt
+- missing voice state: player dispatch may fail repeatedly until voice update succeeds
+
+## Practical producer guidance
+
+- send `shardId` whenever available
+- send voice update as `high` priority
+- keep playback job payload minimal and deterministic

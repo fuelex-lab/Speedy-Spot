@@ -1,35 +1,41 @@
 # Spotify OAuth
 
-Speedy-Spot supports two Spotify modes:
+Speedy-Spot supports Spotify token exchange, refresh, and playlist ingestion as worker jobs.
 
-- Mock mode (`SPOTIFY_MOCK_MODE=true`) for local development without Spotify credentials
-- Real mode (`SPOTIFY_MOCK_MODE=false`) for production OAuth exchange and refresh
+## Modes
 
-## Endpoints
+- `SPOTIFY_MOCK_MODE=true`: local development mode without real Spotify credentials.
+- `SPOTIFY_MOCK_MODE=false`: production OAuth mode with real token exchange/refresh.
 
-- `GET /auth/spotify/url?userId=<id>` generates Spotify authorize URL
-- `POST /auth/spotify/callback` exchanges code and stores token state
+## API endpoints
 
-## Required env in real mode
+- `GET /auth/spotify/url?userId=<id>` builds Spotify authorize URL.
+- `POST /auth/spotify/callback` exchanges auth code and stores token data.
+
+## Required environment for real mode
 
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
 - `SPOTIFY_REDIRECT_URI`
 
-## Token storage providers
+## Token storage options
 
-- `TOKEN_STORE_PROVIDER=memory` for dev/test
-- `TOKEN_STORE_PROVIDER=file` for persistent local runtime
-- `TOKEN_STORE_PROVIDER=encrypted-file` for encrypted-at-rest local persistence
+- `memory`: ephemeral process-local state.
+- `file`: persistent plaintext local file.
+- `encrypted-file`: AES-GCM encrypted file storage.
 
-For `encrypted-file` you must set `TOKEN_STORE_ENCRYPTION_KEY`.
+For `encrypted-file`, set `TOKEN_STORE_ENCRYPTION_KEY` (32-byte base64 or 64-char hex).
 
-## Playlist sync pipeline
+## Playlist sync behavior
 
-`spotify.playlist.sync` jobs fetch playlist tracks with pagination and retry/backoff behavior.
+`spotify.playlist.sync` worker path:
 
-Retry behavior:
+1. Ensure valid access token (refresh if expired).
+2. Fetch playlist tracks with pagination.
+3. Retry on `429` and `5xx` with backoff.
+4. Normalize track metadata for downstream use.
 
-- Retries on `429` and `5xx`
-- Honors `Retry-After` when present
-- Falls back to exponential backoff based on `SPOTIFY_RETRY_BASE_MS`
+Retry configuration:
+
+- `SPOTIFY_MAX_RETRIES`
+- `SPOTIFY_RETRY_BASE_MS`

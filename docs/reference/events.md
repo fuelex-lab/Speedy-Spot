@@ -1,10 +1,12 @@
-# Event and Job Types
+# Events and Job Types
 
-- `spotify.playlist.sync`
+## Job types
+
 - `playback.enqueue`
+- `spotify.playlist.sync`
 - `lavalink.voice.update`
 
-Metrics keys:
+## Metrics keys
 
 - `jobs_received_total`
 - `jobs_completed_total`
@@ -15,3 +17,9 @@ Metrics keys:
 - `lavalink_track_resolved_total`
 - `lavalink_player_dispatched_total`
 - `lavalink_voice_updated_total`
+
+## Interpretation quick guide
+
+- rising retries with flat completions: unstable dependency path
+- rising dead-letter count: persistent handler or payload failure
+- voice updates rising but dispatch flat: likely voice/session mismatch
